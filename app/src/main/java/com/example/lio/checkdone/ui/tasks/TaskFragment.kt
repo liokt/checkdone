@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.lio.checkdone.R
 import com.example.lio.checkdone.data.SortOrder
+import com.example.lio.checkdone.data.Task
 import com.example.lio.checkdone.databinding.FragmentTasksBinding
 import com.example.lio.checkdone.util.onQueryTextChanged
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,7 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class TaskFragment: Fragment(R.layout.fragment_tasks) {
+class TaskFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClickListener {
     private val viewModel: TaskViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -27,7 +28,7 @@ class TaskFragment: Fragment(R.layout.fragment_tasks) {
 
         val binding = FragmentTasksBinding.bind(view)
 
-        val taskAdapter = TasksAdapter()
+        val taskAdapter = TasksAdapter(this)
 
         binding.apply {
             recyclerViewTasks.apply {
@@ -42,6 +43,14 @@ class TaskFragment: Fragment(R.layout.fragment_tasks) {
         }
 
         setHasOptionsMenu(true)
+    }
+
+    override fun onItemClick(task: Task) {
+        viewModel.onTaskSelected(task)
+    }
+
+    override fun onCheckBoxCLick(task: Task, isChecked: Boolean) {
+        viewModel.onTaskCheckedChanged(task, isChecked)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

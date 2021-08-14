@@ -1,7 +1,6 @@
 package com.example.lio.checkdone.data
 
 import androidx.room.*
-import com.example.lio.checkdone.ui.tasks.SortOrder
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -9,9 +9,31 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.lio.checkdone.data.Task
 import com.example.lio.checkdone.databinding.ItemTaskBinding
 
-class TasksAdapter: ListAdapter<Task, TasksAdapter.TaskViewHolder>(DiffCallback()) {
+class TasksAdapter(private val listener: OnItemClickListener) :
+    ListAdapter<Task, TasksAdapter.TaskViewHolder>(DiffCallback()) {
 
-    class TaskViewHolder(private val binding: ItemTaskBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class TaskViewHolder(private val binding: ItemTaskBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.apply {
+                root.setOnClickListener {
+                    val position = adapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val task = getItem(position)
+                        listener.onItemClick(task)
+                    }
+                }
+                checkBoxCompleted.setOnClickListener {
+                    val position = adapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val task = getItem(position)
+                        listener.onCheckBoxCLick(task, checkBoxCompleted.isChecked)
+                    }
+                }
+            }
+        }
+
         fun bind(task: Task) {
             binding.apply {
                 checkBoxCompleted.isChecked = task.completed
@@ -30,6 +52,11 @@ class TasksAdapter: ListAdapter<Task, TasksAdapter.TaskViewHolder>(DiffCallback(
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val currentItem = getItem(position)
         holder.bind(currentItem)
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(task: Task)
+        fun onCheckBoxCLick(task: Task, isChecked: Boolean)
     }
 
     class DiffCallback : DiffUtil.ItemCallback<Task>() {
