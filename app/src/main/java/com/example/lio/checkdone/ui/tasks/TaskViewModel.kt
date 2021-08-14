@@ -1,9 +1,8 @@
 package com.example.lio.checkdone.ui.tasks
 
+import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.lio.checkdone.data.PreferencesManager
 import com.example.lio.checkdone.data.SortOrder
 import com.example.lio.checkdone.data.Task
@@ -17,10 +16,11 @@ import kotlinx.coroutines.launch
 
 class TaskViewModel @ViewModelInject constructor(
     private val taskDao: TaskDao,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    @Assisted private val state: SavedStateHandle
 ) : ViewModel() {
 
-    val searchQuery = MutableStateFlow("")
+    val searchQuery = state.getLiveData("searchQuery", "")
 
     val preferencesFlow = preferencesManager.preferencesFlow
 
@@ -28,7 +28,7 @@ class TaskViewModel @ViewModelInject constructor(
     val taskEvent = taskEventChannel.receiveAsFlow()
 
     private val tasksFlow = combine(
-        searchQuery,
+        searchQuery.asFlow(),
         preferencesFlow
     ) { query, filterPreferences ->
         Pair(query, filterPreferences)
@@ -45,7 +45,9 @@ class TaskViewModel @ViewModelInject constructor(
     }
 
     fun onTaskSelected(task: Task) {
-
+        viewModelScope.launch {
+            taskEventChannel.send(TaskEvent.NavigateToEditTaskScreen(task))
+        }
     }
 
     fun onTaskCheckedChanged(task: Task, checked: Boolean) {
@@ -67,7 +69,15 @@ class TaskViewModel @ViewModelInject constructor(
         }
     }
 
+    fun onAddNewTaskClick() {
+        viewModelScope.launch { 
+            taskEventChannel.send(TaskEvent.NavigateToAddTaskScreen)
+        }
+    }
+
     sealed class TaskEvent {
+        object NavigateToAddTaskScreen : TaskEvent()
+        data class NavigateToEditTaskScreen(val task: Task) : TaskEvent()
         data class ShowUndoDeleteTaskMessage(val task: Task) : TaskEvent()
     }
 
