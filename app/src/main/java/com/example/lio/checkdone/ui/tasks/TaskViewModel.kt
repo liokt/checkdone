@@ -7,6 +7,8 @@ import com.example.lio.checkdone.data.PreferencesManager
 import com.example.lio.checkdone.data.SortOrder
 import com.example.lio.checkdone.data.Task
 import com.example.lio.checkdone.data.TaskDao
+import com.example.lio.checkdone.ui.ADD_TASK_RESULT_OK
+import com.example.lio.checkdone.ui.EDIT_TASK_RESULT_OK
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -75,10 +77,22 @@ class TaskViewModel @ViewModelInject constructor(
         }
     }
 
+    fun onAddEditResult(result: Int) {
+            when (result) {
+                ADD_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task added")
+                EDIT_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task updated")
+            }
+    }
+
+    private fun showTaskSavedConfirmationMessage(msg: String) = viewModelScope.launch {
+        taskEventChannel.send(TaskEvent.ShowTaskSavedConfirmationMessage(msg))
+    }
+
     sealed class TaskEvent {
         object NavigateToAddTaskScreen : TaskEvent()
         data class NavigateToEditTaskScreen(val task: Task) : TaskEvent()
         data class ShowUndoDeleteTaskMessage(val task: Task) : TaskEvent()
+        data class ShowTaskSavedConfirmationMessage(val msg: String) : TaskEvent()
     }
 
     val tasks = tasksFlow.asLiveData()
